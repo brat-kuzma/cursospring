@@ -30,8 +30,17 @@ Configuration and Properties
 - Implement environment-specific configurations using Spring Profiles.
 - Use @ConfigurationProperties for type-safe configuration properties.
 
+Lombok
+- Use Lombok in all new classes where it reduces boilerplate.
+- DTOs, entities, request/response models: use @Getter, @Setter, @NoArgsConstructor, @AllArgsConstructor, @Builder, @Data (only when appropriate).
+- Avoid @Data on JPA entities (prefer explicit @Getter, @Setter, @NoArgsConstructor, @AllArgsConstructor to control equals/hashCode).
+- Use @Slf4j for logging instead of manual Logger fields.
+- Use @RequiredArgsConstructor for constructor injection in services and controllers (with final fields).
+- Use @UtilityClass for utility classes with static methods.
+- Use @Value or @With where immutable DTOs or value objects are needed.
+
 Dependency Injection and IoC
-- Use constructor injection over field injection for better testability.
+- Use constructor injection over field injection for better testability (Lombok @RequiredArgsConstructor with final fields).
 - Leverage Spring's IoC container for managing bean lifecycles.
 
 Testing
