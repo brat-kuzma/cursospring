@@ -1,0 +1,45 @@
+### Переменные (можно менять)
+@baseUrl = http://localhost:8080
+@contentType = application/json
+@token = your-bearer-token-if-needed
+
+### GET — пример с заголовками
+GET {{baseUrl}}/api/example
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+X-Request-Id: req-001
+Accept: application/json
+
+###
+
+### POST — тело запроса 
+POST {{baseUrl}}/api/example
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "name": "test",
+  "value": 42
+}
+
+###
+
+### POST — создать Task (запись в таблицу tasks)
+POST {{baseUrl}}/api/tasks
+Content-Type: {{contentType}}
+
+{
+  "title": "Изучить Spring Boot",
+  "description": "Пройти курс и сделать пет-проект",
+  "dueDate": "2025-12-31",
+  "completed": false
+}
+
+###
+
+### Сертификат: для хоста сертификат задаётся в настройках
+### Файл .vscode/settings.json → rest-client.certificates
+### После настройки просто отправляй запрос на https://твой-хост — сертификат подставится автоматически
+# GET https://api.secure.example.com/endpoint
+# Content-Type: application/json
+###

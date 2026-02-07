@@ -1,0 +1,31 @@
+package com.ExampleCursor.cursospring.service;
+
+import com.ExampleCursor.cursospring.dto.CreateTaskRequest;
+import com.ExampleCursor.cursospring.dto.TaskResponse;
+import com.ExampleCursor.cursospring.entity.Task;
+import com.ExampleCursor.cursospring.repository.TaskRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class TaskService {
+
+    private final TaskRepository taskRepository;
+
+    @Transactional
+    public TaskResponse create(CreateTaskRequest request) {
+        Task task = Task.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .dueDate(request.getDueDate())
+                .completed(request.getCompleted() != null ? request.getCompleted() : false)
+                .build();
+        task = taskRepository.save(task);
+        log.info("Created task: id={}, title={}", task.getId(), task.getTitle());
+        return TaskResponse.fromEntity(task);
+    }
+}
