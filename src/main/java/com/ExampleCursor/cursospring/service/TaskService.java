@@ -28,4 +28,13 @@ public class TaskService {
         log.info("Created task: id={}, title={}", task.getId(), task.getTitle());
         return TaskResponse.fromEntity(task);
     }
+
+    @Transactional
+    public void deleteById(Long id) {
+        if (!taskRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Task not found with id: " + id);
+        }
+        taskRepository.deleteById(id);
+        log.info("Deleted task: id={}", id);
+    }
 }

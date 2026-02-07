@@ -21,4 +21,10 @@ public class TaskController {
         TaskResponse created = taskService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+        taskService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

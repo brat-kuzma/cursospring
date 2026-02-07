@@ -37,6 +37,25 @@ Content-Type: {{contentType}}
 
 ###
 
+### POST — создать Task (запись в таблицу tasks)
+POST {{baseUrl}}/api/tasks
+Content-Type: {{contentType}}
+
+{
+  "title": "Изучить Spring Boot 2",
+  "description": "Пройти курс и сделать пет-проект 2",
+  "dueDate": "2026-02-08",
+  "completed": true
+}
+
+###
+
+### DELETE — удалить Task по id
+DELETE {{baseUrl}}/api/tasks/1
+Content-Type: {{contentType}}
+
+###
+
 ### Сертификат: для хоста сертификат задаётся в настройках
 ### Файл .vscode/settings.json → rest-client.certificates
 ### После настройки просто отправляй запрос на https://твой-хост — сертификат подставится автоматически
