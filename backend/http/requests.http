@@ -1,15 +1,19 @@
-### Переменные (можно менять)
+### ========== Переменные (можно менять) ==========
+# Адрес бэкенда
 @baseUrl = http://localhost:8080
+# Тип тела запроса для JSON
 @contentType = application/json
+# Заглушка для Bearer-токена, если позже будет JWT
 @token = your-bearer-token-if-needed
 
-### Учётные данные для /api/** (Spring Security: user / password)
+# Учётные данные совпадают с UserDetailsService в SecurityConfig (user / password)
 @username = user
 @password = password
-### Basic Auth: base64(user:password) — подставляется в запросы к /api/tasks
+# HTTP Basic: заголовок "Authorization: Basic <base64(user:password)>".
+# dXNlcjpwYXNzd29yZA== — это base64("user:password"). Подставляем в запросы к /api/tasks, чтобы не получать 403.
 @basicAuth = Basic dXNlcjpwYXNzd29yZA==
 
-### GET — пример с заголовками
+### GET — пример с заголовками (эндпоинт /api/example)
 GET {{baseUrl}}/api/example
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
@@ -18,7 +22,7 @@ Accept: application/json
 
 ###
 
-### POST — тело запроса 
+### POST — пример с телом запроса
 POST {{baseUrl}}/api/example
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
@@ -30,7 +34,9 @@ Authorization: Bearer {{token}}
 
 ###
 
-### POST — вход (Spring Security, по умолчанию user / password)
+### POST — вход в систему (AuthController.login).
+# В ответ приходит Set-Cookie: JSESSIONID=... — сохранится в REST-клиенте, следующие запросы в той же сессии будут с кукой.
+# Без этого запроса (или без Basic Auth) запросы к /api/tasks дают 403.
 POST {{baseUrl}}/api/auth/login
 Content-Type: {{contentType}}
 
@@ -41,20 +47,22 @@ Content-Type: {{contentType}}
 
 ###
 
-### GET — текущий пользователь (после входа, с cookie)
+### GET — "кто залогинен?" (AuthController.me). Можно вызывать без авторизации — вернёт authenticated: true/false.
+# Если перед этим вызвать /api/auth/login в том же клиенте, кука подставится и вернётся username.
 GET {{baseUrl}}/api/auth/me
 Content-Type: {{contentType}}
 
 ###
 
-### GET — список всех задач (требуется авторизация)
+### GET — список всех задач. Доступ только для авторизованных (SecurityConfig: /api/** .authenticated()).
+# Authorization: {{basicAuth}} — передаём логин/пароль в виде Basic, чтобы не получать 403.
 GET {{baseUrl}}/api/tasks
 Content-Type: {{contentType}}
 Authorization: {{basicAuth}}
 
 ###
 
-### POST — создать Task (запись в таблицу tasks)
+### POST — создать задачу (первый пример тела)
 POST {{baseUrl}}/api/tasks
 Content-Type: {{contentType}}
 Authorization: {{basicAuth}}
@@ -68,7 +76,7 @@ Authorization: {{basicAuth}}
 
 ###
 
-### POST — создать Task (запись в таблицу tasks)
+### POST — создать задачу (второй пример тела)
 POST {{baseUrl}}/api/tasks
 Content-Type: {{contentType}}
 Authorization: {{basicAuth}}
@@ -82,7 +90,7 @@ Authorization: {{basicAuth}}
 
 ###
 
-### PUT — обновить задачу (в т.ч. флаг completed)
+### PUT — обновить задачу по id (в т.ч. флаг completed). Тоже нужен Authorization.
 PUT {{baseUrl}}/api/tasks/1
 Content-Type: {{contentType}}
 Authorization: {{basicAuth}}
@@ -96,7 +104,7 @@ Authorization: {{basicAuth}}
 
 ###
 
-### DELETE — удалить Task по id
+### DELETE — удалить задачу по id. Требует авторизации (Basic или сессия).
 DELETE {{baseUrl}}/api/tasks/1
 Content-Type: {{contentType}}
 Authorization: {{basicAuth}}
