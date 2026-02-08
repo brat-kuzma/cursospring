@@ -1,38 +1,59 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../contexts/AuthContext'
 
 export function LoginPage() {
-  const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const trimmed = name.trim()
-    if (!trimmed) return
-    login(trimmed)
-    navigate('/', { replace: true })
+    if (!username.trim() || !password) return
+    setError(null)
+    setSubmitting(true)
+    try {
+      await login(username.trim(), password)
+      navigate('/', { replace: true })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка входа')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
     <div className="login-wrap">
       <div className="login-card">
         <h1 className="login-title">Хранилище задач</h1>
-        <p className="login-subtitle">Введите имя для входа</p>
+        <p className="login-subtitle">Войдите в систему</p>
+        {error && <div className="login-error">{error}</div>}
         <form onSubmit={handleSubmit} className="login-form">
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ваше имя"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Логин"
             className="login-input"
+            autoComplete="username"
             autoFocus
           />
-          <button type="submit" className="login-btn">
-            Войти
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Пароль"
+            className="login-input"
+            autoComplete="current-password"
+          />
+          <button type="submit" disabled={submitting} className="login-btn">
+            {submitting ? 'Вход…' : 'Войти'}
           </button>
         </form>
+        <p className="login-hint">По умолчанию: user / password</p>
       </div>
       <style>{`
         .login-wrap {
@@ -65,6 +86,14 @@ export function LoginPage() {
           font-size: 0.95rem;
           text-align: center;
         }
+        .login-error {
+          margin-bottom: 1rem;
+          padding: 0.5rem 0.75rem;
+          background: rgba(239, 68, 68, 0.2);
+          border-radius: 8px;
+          color: #fca5a5;
+          font-size: 0.9rem;
+        }
         .login-form {
           display: flex;
           flex-direction: column;
@@ -95,11 +124,21 @@ export function LoginPage() {
           font-weight: 600;
           transition: opacity 0.2s, transform 0.1s;
         }
-        .login-btn:hover {
+        .login-btn:hover:not(:disabled) {
           opacity: 0.95;
         }
-        .login-btn:active {
+        .login-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        .login-btn:active:not(:disabled) {
           transform: scale(0.98);
+        }
+        .login-hint {
+          margin: 1rem 0 0;
+          font-size: 0.8rem;
+          color: #64748b;
+          text-align: center;
         }
       `}</style>
     </div>

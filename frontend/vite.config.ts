@@ -6,7 +6,21 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': { target: 'http://localhost:8080', changeOrigin: true },
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('proxyRes', (proxyRes) => {
+            const setCookie = proxyRes.headers['set-cookie']
+            if (Array.isArray(setCookie)) {
+              proxyRes.headers['set-cookie'] = setCookie.map((c) =>
+                c.replace(/;\s*Domain=[^;]+/i, '')
+              )
+            }
+          })
+        },
+      },
     },
   },
 })

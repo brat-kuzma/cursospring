@@ -1,7 +1,17 @@
-import { useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { authApi } from '../api/auth'
 
-export function useAuth() {
+interface AuthContextValue {
+  user: string | null
+  isLoggedIn: boolean
+  loading: boolean
+  login: (username: string, password: string) => Promise<void>
+  logout: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -26,6 +36,7 @@ export function useAuth() {
       setUser(data.username)
     } else {
       setUser(null)
+      throw new Error('Ошибка входа')
     }
   }, [])
 
@@ -37,5 +48,19 @@ export function useAuth() {
     }
   }, [])
 
-  return { user, isLoggedIn: !!user, loading, login, logout }
+  const value: AuthContextValue = {
+    user,
+    isLoggedIn: !!user,
+    loading,
+    login,
+    logout,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
 }

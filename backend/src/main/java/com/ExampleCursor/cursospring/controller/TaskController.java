@@ -2,6 +2,7 @@ package com.ExampleCursor.cursospring.controller;
 
 import com.ExampleCursor.cursospring.dto.CreateTaskRequest;
 import com.ExampleCursor.cursospring.dto.TaskResponse;
+import com.ExampleCursor.cursospring.dto.UpdateTaskRequest;
 import com.ExampleCursor.cursospring.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,13 @@ public class TaskController {
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest request) {
         TaskResponse created = taskService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TaskResponse> updateTask(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateTaskRequest request) {
+        return ResponseEntity.ok(taskService.update(id, request));
     }
 
     @DeleteMapping("/{id}")

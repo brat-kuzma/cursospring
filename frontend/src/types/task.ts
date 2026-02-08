@@ -14,3 +14,10 @@ export interface CreateTaskRequest {
   dueDate?: string
   completed?: boolean
 }
+
+export interface UpdateTaskRequest {
+  title: string
+  description?: string | null
+  dueDate?: string | null
+  completed?: boolean
+}

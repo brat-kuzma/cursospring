@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../contexts/AuthContext'
 import { tasksApi } from '../api/tasks'
 import type { Task, CreateTaskRequest } from '../types/task'
 
@@ -60,6 +60,21 @@ export function TasksPage() {
     }
   }
 
+  const handleToggleCompleted = async (task: Task) => {
+    setError(null)
+    try {
+      await tasksApi.update(task.id, {
+        title: task.title,
+        description: task.description ?? undefined,
+        dueDate: task.dueDate ?? undefined,
+        completed: !task.completed,
+      })
+      await loadTasks()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Не удалось обновить задачу')
+    }
+  }
+
   const formatDate = (s: string | null) => {
     if (!s) return '—'
     try {
@@ -77,7 +92,7 @@ export function TasksPage() {
           <h1 className="tasks-logo">Задачи</h1>
           <div className="tasks-user">
             <span className="tasks-username">{user}</span>
-            <button type="button" onClick={logout} className="tasks-logout">
+            <button type="button" onClick={() => logout()} className="tasks-logout">
               Выйти
             </button>
           </div>
@@ -129,7 +144,16 @@ export function TasksPage() {
           ) : (
             <ul className="task-list">
               {tasks.map((task) => (
-                <li key={task.id} className="task-item">
+                <li key={task.id} className={`task-item ${task.completed ? 'task-item-completed' : ''}`}>
+                  <label className="task-item-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={!!task.completed}
+                      onChange={() => handleToggleCompleted(task)}
+                      className="task-checkbox-input"
+                    />
+                    <span className="task-checkbox-box" />
+                  </label>
                   <div className="task-item-content">
                     <span className="task-item-title">{task.title}</span>
                     {task.description && (
@@ -303,6 +327,43 @@ export function TasksPage() {
         .task-item:hover {
           border-color: rgba(99, 102, 241, 0.4);
           background: rgba(30, 41, 59, 0.8);
+        }
+        .task-item-completed .task-item-title {
+          text-decoration: line-through;
+          color: #94a3b8;
+        }
+        .task-item-checkbox {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+        }
+        .task-checkbox-input {
+          position: absolute;
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .task-checkbox-box {
+          width: 22px;
+          height: 22px;
+          border: 2px solid #475569;
+          border-radius: 6px;
+          background: #1e293b;
+          transition: border-color 0.2s, background 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          color: transparent;
+        }
+        .task-checkbox-input:checked + .task-checkbox-box {
+          background: #6366f1;
+          border-color: #6366f1;
+          color: #fff;
+        }
+        .task-checkbox-input:checked + .task-checkbox-box::after {
+          content: '✓';
         }
         .task-item-content {
           flex: 1;

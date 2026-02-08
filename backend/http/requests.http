@@ -24,7 +24,24 @@ Authorization: Bearer {{token}}
 
 ###
 
-### GET — список всех задач
+### POST — вход (Spring Security, по умолчанию user / password)
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "user",
+  "password": "password"
+}
+
+###
+
+### GET — текущий пользователь (после входа, с cookie)
+GET {{baseUrl}}/api/auth/me
+Content-Type: {{contentType}}
+
+###
+
+### GET — список всех задач (требуется авторизация)
 GET {{baseUrl}}/api/tasks
 Content-Type: {{contentType}}
 
@@ -51,6 +68,19 @@ Content-Type: {{contentType}}
   "title": "Изучить Spring Boot 2",
   "description": "Пройти курс и сделать пет-проект 2",
   "dueDate": "2026-02-08",
+  "completed": true
+}
+
+###
+
+### PUT — обновить задачу (в т.ч. флаг completed)
+PUT {{baseUrl}}/api/tasks/1
+Content-Type: {{contentType}}
+
+{
+  "title": "Изучить Spring Boot",
+  "description": "Пройти курс",
+  "dueDate": "2025-12-31",
   "completed": true
 }
 

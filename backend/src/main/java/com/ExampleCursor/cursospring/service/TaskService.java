@@ -2,6 +2,7 @@ package com.ExampleCursor.cursospring.service;
 
 import com.ExampleCursor.cursospring.dto.CreateTaskRequest;
 import com.ExampleCursor.cursospring.dto.TaskResponse;
+import com.ExampleCursor.cursospring.dto.UpdateTaskRequest;
 import com.ExampleCursor.cursospring.entity.Task;
 import com.ExampleCursor.cursospring.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,21 @@ public class TaskService {
                 .build();
         task = taskRepository.save(task);
         log.info("Created task: id={}, title={}", task.getId(), task.getTitle());
+        return TaskResponse.fromEntity(task);
+    }
+
+    @Transactional
+    public TaskResponse update(Long id, UpdateTaskRequest request) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
+        task.setTitle(request.getTitle());
+        task.setDescription(request.getDescription());
+        task.setDueDate(request.getDueDate());
+        if (request.getCompleted() != null) {
+            task.setCompleted(request.getCompleted());
+        }
+        task = taskRepository.save(task);
+        log.info("Updated task: id={}", id);
         return TaskResponse.fromEntity(task);
     }
 
