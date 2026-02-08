@@ -111,6 +111,40 @@ Authorization: {{basicAuth}}
 
 ###
 
+### ========== Файловый менеджер (/api/files) ==========
+### GET — список загруженных файлов (имя + размер в байтах)
+GET {{baseUrl}}/api/files
+Authorization: {{basicAuth}}
+
+###
+
+### POST — загрузить файл (multipart). В REST-клиенте: заменить путь к файлу на свой.
+# IntelliJ: file@/absolute/path/to/file.txt  или  file@relative/path
+# VS Code REST Client: см. документацию по multipart
+# POST {{baseUrl}}/api/files
+# Authorization: {{basicAuth}}
+# Content-Type: multipart/form-data; boundary=bound
+#
+# --bound
+# Content-Disposition: form-data; name="file"; filename="test.txt"
+#
+# < ./test.txt
+# --bound--
+
+###
+
+### GET — скачать файл по имени (имя из списка GET /api/files)
+# GET {{baseUrl}}/api/files/имя_файла.txt
+# Authorization: {{basicAuth}}
+
+###
+
+### DELETE — удалить файл по имени
+# DELETE {{baseUrl}}/api/files/имя_файла.txt
+# Authorization: {{basicAuth}}
+
+###
+
 ### Сертификат: для хоста сертификат задаётся в настройках
 ### Файл .vscode/settings.json → rest-client.certificates
 ### После настройки просто отправляй запрос на https://твой-хост — сертификат подставится автоматически

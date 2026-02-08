@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { tasksApi } from '../api/tasks'
 import type { Task, CreateTaskRequest } from '../types/task'
@@ -89,7 +90,11 @@ export function TasksPage() {
     <div className="tasks-wrap">
       <header className="tasks-header">
         <div className="tasks-header-inner">
-          <h1 className="tasks-logo">Задачи</h1>
+          <nav className="tasks-nav">
+            <Link to="/" className="tasks-nav-link tasks-nav-link-active">Задачи</Link>
+            <span className="tasks-nav-sep">|</span>
+            <Link to="/files" className="tasks-nav-link">Файлы</Link>
+          </nav>
           <div className="tasks-user">
             <span className="tasks-username">{user}</span>
             <button type="button" onClick={() => logout()} className="tasks-logout">
@@ -206,11 +211,27 @@ export function TasksPage() {
           align-items: center;
           justify-content: space-between;
         }
-        .tasks-logo {
-          margin: 0;
-          font-size: 1.5rem;
-          font-weight: 700;
+        .tasks-nav {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+        .tasks-nav-link {
+          color: #94a3b8;
+          text-decoration: none;
+          font-size: 1rem;
+          transition: color 0.2s;
+        }
+        .tasks-nav-link:hover {
+          color: #e2e8f0;
+        }
+        .tasks-nav-link-active {
           color: #f1f5f9;
+          font-weight: 600;
+        }
+        .tasks-nav-sep {
+          color: #475569;
+          font-size: 0.9rem;
         }
         .tasks-user {
           display: flex;

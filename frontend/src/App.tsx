@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LoginPage } from './pages/LoginPage'
 import { TasksPage } from './pages/TasksPage'
+import { FileManagerPage } from './pages/FileManagerPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn, loading } = useAuth()
@@ -20,6 +21,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <TasksPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/files"
+        element={
+          <ProtectedRoute>
+            <FileManagerPage />
           </ProtectedRoute>
         }
       />

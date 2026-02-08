@@ -41,3 +41,7 @@ backend/src/main/resources/application-local.properties
 **/application-local.properties
 **/application-local.yml
 **/application-local.yaml
+
+### Загруженные файлы (файловый менеджер)
+data/
+backend/data/
