@@ -3,6 +3,12 @@
 @contentType = application/json
 @token = your-bearer-token-if-needed
 
+### Учётные данные для /api/** (Spring Security: user / password)
+@username = user
+@password = password
+### Basic Auth: base64(user:password) — подставляется в запросы к /api/tasks
+@basicAuth = Basic dXNlcjpwYXNzd29yZA==
+
 ### GET — пример с заголовками
 GET {{baseUrl}}/api/example
 Content-Type: {{contentType}}
@@ -44,17 +50,19 @@ Content-Type: {{contentType}}
 ### GET — список всех задач (требуется авторизация)
 GET {{baseUrl}}/api/tasks
 Content-Type: {{contentType}}
+Authorization: {{basicAuth}}
 
 ###
 
 ### POST — создать Task (запись в таблицу tasks)
 POST {{baseUrl}}/api/tasks
 Content-Type: {{contentType}}
+Authorization: {{basicAuth}}
 
 {
-  "title": "Изучить Spring Boot",
-  "description": "Пройти курс и сделать пет-проект",
-  "dueDate": "2025-12-31",
+  "title": "Изучить магию",
+  "description": "Пройти магию",
+  "dueDate": "2028-12-31",
   "completed": false
 }
 
@@ -63,6 +71,7 @@ Content-Type: {{contentType}}
 ### POST — создать Task (запись в таблицу tasks)
 POST {{baseUrl}}/api/tasks
 Content-Type: {{contentType}}
+Authorization: {{basicAuth}}
 
 {
   "title": "Изучить Spring Boot 2",
@@ -76,6 +85,7 @@ Content-Type: {{contentType}}
 ### PUT — обновить задачу (в т.ч. флаг completed)
 PUT {{baseUrl}}/api/tasks/1
 Content-Type: {{contentType}}
+Authorization: {{basicAuth}}
 
 {
   "title": "Изучить Spring Boot",
@@ -89,6 +99,7 @@ Content-Type: {{contentType}}
 ### DELETE — удалить Task по id
 DELETE {{baseUrl}}/api/tasks/1
 Content-Type: {{contentType}}
+Authorization: {{basicAuth}}
 
 ###
 
