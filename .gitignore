@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Секреты и локальная конфигурация (не коммитить) ###
+.env
+.env.local
+.env.*.local
+*.env
+backend/src/main/resources/application-local.properties
+**/application-local.properties
+**/application-local.yml
+**/application-local.yaml
