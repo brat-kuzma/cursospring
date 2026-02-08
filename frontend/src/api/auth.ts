@@ -10,7 +10,15 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   })
   if (!res.ok) {
     const text = await res.text()
-    throw new Error(text || `HTTP ${res.status}`)
+    let msg = `HTTP ${res.status}`
+    try {
+      const json = JSON.parse(text)
+      if (json.error) msg = String(json.error)
+      else if (json.message) msg = String(json.message)
+    } catch {
+      if (text) msg = text
+    }
+    throw new Error(msg)
   }
   if (res.status === 204) return undefined as T
   return res.json()

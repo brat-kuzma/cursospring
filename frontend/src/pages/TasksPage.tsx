@@ -8,7 +8,7 @@ export function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [form, setForm] = useState<CreateTaskRequest>({ title: '', description: '' })
+  const [form, setForm] = useState<CreateTaskRequest>({ title: '', description: '', completed: false })
   const [submitting, setSubmitting] = useState(false)
 
   const loadTasks = async () => {
@@ -38,9 +38,9 @@ export function TasksPage() {
         title,
         description: form.description?.trim() || undefined,
         dueDate: form.dueDate || undefined,
-        completed: false,
+        completed: form.completed ?? false,
       })
-      setForm({ title: '', description: '' })
+      setForm({ title: '', description: '', completed: false })
       await loadTasks()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Не удалось создать задачу')
@@ -123,6 +123,14 @@ export function TasksPage() {
               onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value || undefined }))}
               className="task-input task-input-date"
             />
+            <label className="task-form-completed">
+              <input
+                type="checkbox"
+                checked={form.completed ?? false}
+                onChange={(e) => setForm((f) => ({ ...f, completed: e.target.checked }))}
+              />
+              <span>Выполнена</span>
+            </label>
             <button type="submit" disabled={submitting} className="task-submit">
               {submitting ? 'Добавляю…' : 'Добавить'}
             </button>
@@ -273,6 +281,18 @@ export function TasksPage() {
         }
         .task-input-date {
           max-width: 200px;
+        }
+        .task-form-completed {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          cursor: pointer;
+          font-size: 0.9rem;
+          color: #cbd5e1;
+        }
+        .task-form-completed input {
+          width: 18px;
+          height: 18px;
         }
         .task-submit {
           align-self: flex-start;
