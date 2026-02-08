@@ -66,11 +66,19 @@
 	</dependencies>
 
 	<build>
+		<sourceDirectory>backend/src/main/java</sourceDirectory>
+		<testSourceDirectory>backend/src/test/java</testSourceDirectory>
+		<resources>
+			<resource>
+				<directory>backend/src/main/resources</directory>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<mainClass>com.ExampleCursor.cursospring.CursospringApplication</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
