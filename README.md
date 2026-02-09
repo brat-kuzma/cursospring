@@ -1,6 +1,6 @@
-# Cursospring — хранилище задач
+# Cursospring — задачи и файловый менеджер
 
-Веб-приложение для управления задачами: бэкенд на Spring Boot, фронтенд на React. Авторизация через Spring Security (логин/пароль, сессия).
+Веб-приложение: управление задачами и загрузка файлов. Бэкенд — Spring Boot, фронтенд — React. Авторизация через Spring Security (логин/пароль, сессия).
 
 ---
 
@@ -25,15 +25,16 @@
 | **React 18** | UI |
 | **TypeScript** | Типизация |
 | **Vite 5** | Сборка и dev-сервер, прокси к API |
-| **React Router 6** | Маршрутизация (логин / список задач) |
+| **React Router 6** | Маршрутизация (логин, задачи, файловый менеджер) |
 
 ### Инфраструктура
-- **CORS** — доступ к API с фронта (localhost:5173).
+- **CORS** — доступ к API с фронта (localhost:5173, 3000).
 - **Сессия** — JSESSIONID в cookie после логина, сохранение контекста в Spring Security 6.
+- **Multipart** — загрузка файлов до 1 ГБ (Spring Boot multipart, хранение на диске).
 
 ---
 
-## Модуль создания задач
+## Модуль задач
 
 Реализован в бэкенде и на фронте.
 
@@ -53,6 +54,55 @@
 - **Форма «Новая задача»**: заголовок, описание, дата дедлайна, чекбокс «Выполнена». Отправка — `POST /api/tasks`.
 - **Список задач**: загрузка через `GET /api/tasks`, отображение с чекбоксом «выполнена» (переключение через `PUT /api/tasks/{id}`) и кнопкой удаления (`DELETE`).
 - Запросы к API идут с `credentials: 'include'` (сессионная cookie).
+- Навигация: страница «Задачи» (/) и «Файлы» (/files) в шапке.
+
+---
+
+## Модуль файлового менеджера
+
+Упрощённый файловый менеджер: загрузка файлов на сервер, просмотр списка, скачивание и удаление. Файлы хранятся на диске и остаются доступными после перезапуска приложения.
+
+### Backend
+
+- **Хранение** — каталог на диске, задаётся в `application.properties`:
+  - `app.file.upload-dir` (по умолчанию `./data/uploads`, можно переопределить переменной окружения `APP_UPLOAD_DIR`).
+  - Каталог создаётся при первом обращении; путь нормализуется и не выходит за пределы заданной директории (защита от path traversal).
+- **Лимиты загрузки** — до **1 ГБ** на файл и на запрос:
+  - `spring.servlet.multipart.max-file-size=1GB`
+  - `spring.servlet.multipart.max-request-size=1GB`
+- **Компоненты**:
+  - **FileStorageProperties** — конфигурация `app.file.upload-dir`, возвращает `Path` к каталогу загрузок.
+  - **FileStorageService** — сохранение, список, выдача файла для скачивания, удаление:
+    - имена файлов санитизируются (только базовое имя, без `..` и разделителей пути);
+    - при совпадении имени добавляется суффикс `_1`, `_2` и т.д.;
+    - при скачивании и удалении проверяется, что итоговый путь остаётся внутри корневого каталога.
+  - **FileController** (`/api/files`) — все эндпоинты требуют авторизации:
+    - `POST /api/files` — загрузка (multipart, параметр `file`); в ответе — имя и размер сохранённого файла;
+    - `GET /api/files` — список файлов (имя + размер в байтах);
+    - `GET /api/files/{fileName}` — скачивание (Content-Disposition: attachment, имя в UTF-8);
+    - `DELETE /api/files/{fileName}` — удаление файла по имени.
+  - **DTO** — `FileInfoDto` (name, sizeInBytes).
+- **Обработка ошибок**:
+  - `MaxUploadSizeExceededException` → 413 Payload Too Large с сообщением о лимите 1 ГБ;
+  - `ResourceNotFoundException` для файла → 404;
+  - неверное имя/путь → 400 (IllegalArgumentException).
+
+### Frontend
+
+- **Страница «Файлы»** (`/files`): доступна после входа, в шапке навигация «Задачи | Файлы».
+- **Форма загрузки**: выбор файла (input type=file) и кнопка «Загрузить»; подсказка о лимите 1 ГБ и о том, что файлы сохраняются на сервере.
+- **Список загруженных файлов**: для каждого файла — имя, размер (отображается в Б / КБ / МБ / ГБ), кнопки «Скачать» и «Удалить» (с подтверждением).
+- **API** (`frontend/src/api/files.ts`):
+  - `uploadFile(file)` — FormData с полем `file`, ответ — объект с именем и размером;
+  - `listFiles()` — список для отображения;
+  - `downloadFile(name)` — GET с `credentials`, сохранение через создание временной ссылки и программный клик по `<a download>`;
+  - `deleteFile(name)` — DELETE по имени; имя в URL кодируется через `encodeURIComponent`.
+- Запросы с `credentials: 'include'` (сессия).
+
+### Замечания по развёртыванию
+
+- Каталог `data/` (и `backend/data/`) добавлен в `.gitignore` — загруженные файлы не коммитятся.
+- Для продакшена имеет смысл задать `APP_UPLOAD_DIR` в абсолютный путь (например отдельный том или NFS) и при необходимости ограничить доступ к каталогу на уровне ОС.
 
 ---
 
@@ -91,7 +141,14 @@ cd frontend
 npm install
 npm run dev
 ```
-Приложение: http://localhost:5173 (прокси `/api` → http://localhost:8080).
+Приложение: http://localhost:5173 (прокси `/api` → http://localhost:8080). После входа доступны страницы «Задачи» (/) и «Файлы» (/files).
+
+### 4. Каталог для загрузок (опционально)
+
+По умолчанию файлы сохраняются в `./data/uploads` (относительно рабочей директории при запуске). Чтобы задать свой каталог:
+```bash
+export APP_UPLOAD_DIR=/путь/к/каталогу
+```
 
 ---
 
@@ -99,12 +156,19 @@ npm run dev
 
 ```
 cursospring/
-├── backend/src/main/java/.../     # Spring Boot (entity, dto, controller, service, config)
+├── backend/src/main/java/.../
+│   ├── config/          # SecurityConfig, WebConfig, FileStorageProperties
+│   ├── controller/      # Auth, Task, File, GlobalExceptionHandler
+│   ├── dto/             # Auth, Task, FileInfoDto, LoginRequest и др.
+│   ├── entity/          # Task (JPA)
+│   ├── repository/      # TaskRepository
+│   └── service/         # TaskService, FileStorageService, ResourceNotFoundException
 ├── backend/src/main/resources/
-│   ├── application.properties     # без секретов, значения из env
+│   ├── application.properties   # БД, multipart 1GB, app.file.upload-dir
 │   └── application-local.properties  # локальные секреты (в .gitignore)
-├── frontend/                      # React + Vite
-├── pom.xml                        # Maven, sourceDirectory → backend
+├── backend/http/requests.http  # примеры запросов (tasks, auth, files)
+├── frontend/                    # React + Vite, страницы Tasks и FileManager
+├── pom.xml                      # Maven, sourceDirectory → backend
 └── README.md
 ```
 
@@ -114,3 +178,5 @@ cursospring/
 
 - Пароли БД и прочие секреты задаются только через переменные окружения или `application-local.properties`.
 - Файлы `.env`, `application-local.properties` и аналоги добавлены в `.gitignore` и не коммитятся в GitHub.
+- Доступ к `/api/**` (в т.ч. `/api/tasks` и `/api/files`) — только для авторизованных пользователей; логин и проверка сессии — `/api/auth/login`, `/api/auth/me`.
+- В файловом менеджере имена файлов санитизируются, а пути при скачивании и удалении проверяются на нахождение внутри корневого каталога загрузок (защита от path traversal).

@@ -1,0 +1,62 @@
+# ============================================
+# Команды apt install для всех зависимостей cursospring
+# Выполнять на Debian/Ubuntu сервере под root
+# ============================================
+
+# 1. Обновление списка пакетов
+apt update
+
+# 2. Backend: Java 21 JDK
+# Если пакет openjdk-21-jdk недоступен, используйте альтернативный метод ниже
+
+# Вариант А: Попытка установки из стандартных репозиториев
+apt install -y openjdk-21-jdk
+
+# Вариант Б: Если выше не работает - установка через Adoptium (Eclipse Temurin)
+# apt install -y wget apt-transport-https ca-certificates gnupg
+# mkdir -p /etc/apt/keyrings
+# wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc
+# echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
+# apt update
+# apt install -y temurin-21-jdk
+
+# 3. Backend: Maven
+apt install -y maven
+
+# 4. Backend: PostgreSQL (если ещё не установлен)
+apt install -y postgresql postgresql-contrib
+
+# 5. Frontend: Node.js и npm (через NodeSource для актуальной версии)
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
+
+# 6. Инструменты для сборки (для нативных зависимостей npm)
+apt install -y build-essential
+
+# 7. Git (для клонирования репозитория)
+apt install -y git
+
+# ============================================
+# Всё одной командой:
+# ============================================
+apt update && \
+apt install -y openjdk-21-jdk maven postgresql postgresql-contrib build-essential git && \
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+apt install -y nodejs
+
+# ============================================
+# После установки настройте PostgreSQL:
+# ============================================
+su - postgres -c "psql"
+ALTER USER postgres PASSWORD 'ваш_пароль';
+\q
+
+# ============================================
+# Проверка установки:
+# ============================================
+java -version
+mvn -version
+psql --version
+node --version
+npm --version
+git --version
