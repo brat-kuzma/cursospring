@@ -28,9 +28,10 @@
 | **React Router 6** | Маршрутизация (логин, задачи, файловый менеджер) |
 
 ### Инфраструктура
-- **CORS** — доступ к API с фронта (localhost:5173, 3000).
+- **CORS** — доступ к API с фронта (localhost:5173, 3000 или один домен через nginx).
 - **Сессия** — JSESSIONID в cookie после логина, сохранение контекста в Spring Security 6.
 - **Multipart** — загрузка файлов до 1 ГБ (Spring Boot multipart, хранение на диске).
+- **Nginx** — в продакшене раздаёт собранный фронтенд (статика) и проксирует `/api` на бэкенд; лимит загрузки задаётся `client_max_body_size` (рекомендуется 1024M для файлов до 1 ГБ).
 
 ---
 
@@ -135,7 +136,7 @@ mvn spring-boot:run
 Приложение: http://localhost:8080  
 Логин по умолчанию (in-memory): **user** / **password**
 
-### 3. Frontend
+### 3. Frontend (локальная разработка)
 ```bash
 cd frontend
 npm install
@@ -143,7 +144,11 @@ npm run dev
 ```
 Приложение: http://localhost:5173 (прокси `/api` → http://localhost:8080). После входа доступны страницы «Задачи» (/) и «Файлы» (/files).
 
-### 4. Каталог для загрузок (опционально)
+### 4. Продакшен: фронт через Nginx
+
+В продакшене фронт собирается (`npm run build`), статика кладётся в каталог (например `/usr/share/nginx/html/cursospring`), **Nginx** раздаёт её и проксирует запросы `/api` на бэкенд (порт 8080). Для загрузки файлов до 1 ГБ в конфиге nginx задаётся `client_max_body_size 1024M;` (в блоке `server` и в `location /api`). Подробнее — в `scripts/DEPLOY.md` и `scripts/DEPLOY-UBUNTU22.md`.
+
+### 5. Каталог для загрузок (опционально)
 
 По умолчанию файлы сохраняются в `./data/uploads` (относительно рабочей директории при запуске). Чтобы задать свой каталог:
 ```bash
@@ -168,9 +173,12 @@ cursospring/
 │   └── application-local.properties  # локальные секреты (в .gitignore)
 ├── backend/http/requests.http  # примеры запросов (tasks, auth, files)
 ├── frontend/                    # React + Vite, страницы Tasks и FileManager
-├── pom.xml                      # Maven, sourceDirectory → backend
+├── scripts/                    # Скрипты деплоя (в т.ч. deploy-ubuntu22-minimal.sh с настройкой nginx)
+├── pom.xml                     # Maven, sourceDirectory → backend
 └── README.md
 ```
+
+После деплоя на сервер (например по `scripts/deploy-ubuntu22-minimal.sh`): бэкенд — systemd-сервис `cursospring`, фронт и прокси `/api` — **Nginx** (конфиг на сервере: `/etc/nginx/sites-available/cursospring`).
 
 ---
 

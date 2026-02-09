@@ -130,16 +130,18 @@ FRONT_ROOT="/usr/share/nginx/html/cursospring"
 mkdir -p "$FRONT_ROOT"
 cp -r dist/* "$FRONT_ROOT/"
 
-# Конфиг nginx: статика + прокси /api
+# Конфиг nginx: статика + прокси /api (лимит загрузки 1 ГБ для файлового менеджера)
 cat > /etc/nginx/sites-available/cursospring << 'NGINX'
 server {
     listen 80 default_server;
     root /usr/share/nginx/html/cursospring;
     index index.html;
+    client_max_body_size 1024M;
     location / {
         try_files $uri $uri/ /index.html;
     }
     location /api {
+        client_max_body_size 1024M;
         proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

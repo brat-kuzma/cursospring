@@ -1,8 +1,10 @@
 # Развертывание cursospring на сервере
 
+В продакшене приложение работает так: **PostgreSQL** — БД, **бэкенд (Spring Boot)** — на порту 8080, **фронтенд** — собранная статика, которую раздаёт **Nginx**; Nginx же проксирует запросы `/api` на бэкенд. Для загрузки файлов до 1 ГБ в nginx задаётся `client_max_body_size 1024M;`.
+
 ## Предварительные требования
 
-✅ Все зависимости установлены (Java 21, Maven, PostgreSQL, Node.js)  
+✅ Все зависимости установлены (Java 21, Maven, PostgreSQL, Node.js, Nginx для продакшена)  
 ✅ База данных создана (см. `backend/sql/README.md`)
 
 ---
@@ -100,40 +102,39 @@ java -jar target/cursospring-0.0.1-SNAPSHOT.jar
 
 ---
 
-## Шаг 4: Развертывание фронтенда
+## Шаг 4: Развертывание фронтенда (Nginx)
 
-### Вариант А: Сборка статики + веб-сервер (рекомендуется для продакшена)
+В продакшене фронт **собирается** и раздаётся через **Nginx** (статика + прокси `/api` на бэкенд).
+
+### Сборка фронтенда
 
 ```bash
 cd /opt/cursospring/frontend
-
-# Установка зависимостей
 npm install
-
-# Сборка для продакшена
 npm run build
-
 # Результат в frontend/dist/
 ```
 
-Затем настройте **nginx** для раздачи статики:
+### Конфигурация Nginx
+
+Создайте или отредактируйте конфиг (например `/etc/nginx/sites-available/cursospring`):
 
 ```nginx
 server {
-    listen 80;
+    listen 80 default_server;
     server_name ваш_домен.com;
 
-    # Статика фронтенда
-    root /opt/cursospring/frontend/dist;
+    root /usr/share/nginx/html/cursospring;   # или /opt/cursospring/frontend/dist
     index index.html;
+    client_max_body_size 1024M;
 
     location / {
         try_files $uri $uri/ /index.html;
     }
 
-    # Проксирование API запросов к бэкенду
     location /api {
-        proxy_pass http://localhost:8080;
+        client_max_body_size 1024M;
+        proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -142,12 +143,13 @@ server {
 }
 ```
 
-Перезапустите nginx:
+Подключите сайт и перезагрузите nginx:
 ```bash
-systemctl reload nginx
+ln -sf /etc/nginx/sites-available/cursospring /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
 ```
 
-### Вариант Б: Dev-сервер (для тестирования)
+### Вариант: Dev-сервер (только для тестирования)
 
 ```bash
 cd /opt/cursospring/frontend
@@ -234,16 +236,20 @@ systemctl status cursospring
 ```
 /opt/cursospring/
 ├── backend/              # Исходники бэкенда
-├── frontend/            # Исходники фронтенда
-│   └── dist/            # Собранный фронтенд (для nginx)
-├── target/              # Собранный JAR бэкенда
+├── frontend/             # Исходники фронтенда
+│   └── dist/             # Собранный фронтенд (копируется в каталог nginx)
+├── target/               # Собранный JAR бэкенда
 ├── data/
-│   └── uploads/         # Загруженные файлы
+│   └── uploads/          # Загруженные файлы
 ├── logs/
-│   ├── backend.log      # Логи бэкенда
-│   └── backend.pid      # PID файл
-├── scripts/             # Скрипты развертывания
-└── .env                 # Переменные окружения (опционально)
+│   ├── backend.log       # Логи бэкенда (если запуск через скрипт)
+│   └── backend.pid       # PID файл
+├── scripts/              # Скрипты развертывания
+└── .env                  # Переменные окружения (опционально)
+
+На сервере (Nginx):
+/etc/nginx/sites-available/cursospring   # Конфиг: статика + прокси /api, client_max_body_size 1024M
+/usr/share/nginx/html/cursospring/       # Статика фронта (если деплой через deploy-ubuntu22-minimal.sh)
 ```
 
 ---
@@ -258,7 +264,10 @@ systemctl status cursospring
 ### Фронтенд не подключается к бэкенду
 1. Проверьте CORS в `WebConfig.java`
 2. Убедитесь, что бэкенд запущен: `curl http://localhost:8080/api/auth/me`
-3. Проверьте прокси в nginx (если используется)
+3. Проверьте конфиг nginx: `location /api` должен проксировать на `http://127.0.0.1:8080`
+
+### 413 при загрузке файла (Request Entity Too Large)
+В конфиге nginx добавьте `client_max_body_size 1024M;` в блок `server` и в блок `location /api`, затем `nginx -t && systemctl reload nginx`. Подробнее — в `scripts/DEPLOY-UBUNTU22.md`.
 
 ### Файлы не сохраняются
 1. Проверьте права на каталог: `ls -la data/uploads`
