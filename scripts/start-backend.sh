@@ -6,7 +6,14 @@
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/cursospring}"
 BACKEND_DIR="$PROJECT_DIR/backend"
-JAR_FILE="$PROJECT_DIR/target/cursospring-0.0.1-SNAPSHOT.jar"
+# Поиск JAR файла (может быть в target/ или backend/target/)
+if [ -f "$PROJECT_DIR/target/cursospring-0.0.1-SNAPSHOT.jar" ]; then
+    JAR_FILE="$PROJECT_DIR/target/cursospring-0.0.1-SNAPSHOT.jar"
+elif [ -f "$BACKEND_DIR/target/cursospring-0.0.1-SNAPSHOT.jar" ]; then
+    JAR_FILE="$BACKEND_DIR/target/cursospring-0.0.1-SNAPSHOT.jar"
+else
+    JAR_FILE="$PROJECT_DIR/target/cursospring-0.0.1-SNAPSHOT.jar"
+fi
 LOG_FILE="${LOG_FILE:-$PROJECT_DIR/logs/backend.log}"
 PID_FILE="${PID_FILE:-$PROJECT_DIR/logs/backend.pid}"
 
@@ -36,7 +43,19 @@ fi
 
 cd "$PROJECT_DIR" || exit 1
 
+# Проверка наличия JAR файла
+if [ ! -f "$JAR_FILE" ]; then
+    echo "❌ JAR файл не найден: $JAR_FILE"
+    echo ""
+    echo "Сначала выполните сборку:"
+    echo "  $PROJECT_DIR/scripts/deploy-backend.sh"
+    echo "  или"
+    echo "  cd $PROJECT_DIR && mvn clean package -DskipTests"
+    exit 1
+fi
+
 echo "Запуск бэкенда..."
+echo "JAR: $JAR_FILE"
 echo "Логи: $LOG_FILE"
 
 # Запуск в фоне

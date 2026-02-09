@@ -17,8 +17,17 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                // Разрешаем запросы только с этих адресов (фронт в разработке).
-                .allowedOrigins("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000")
+                // Разрешаем запросы с этих адресов (локальная разработка и удалённый сервер).
+                // Для удалённого сервера добавьте IP адрес или домен в этот список.
+                // Пример: "http://192.168.1.100:5173" или "http://your-domain.com:5173"
+                .allowedOrigins(
+                    "http://localhost:5173", 
+                    "http://localhost:3000", 
+                    "http://127.0.0.1:5173", 
+                    "http://127.0.0.1:3000"
+                    // Добавьте сюда IP вашего сервера, например:
+                    // "http://192.168.1.100:5173"
+                )
                 // Какие HTTP-методы разрешены с другого origin.
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 // Разрешаем любые заголовки (в т.ч. Authorization, Content-Type).

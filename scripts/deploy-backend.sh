@@ -8,7 +8,8 @@ set -e
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/cursospring}"
 BACKEND_DIR="$PROJECT_DIR/backend"
-JAR_FILE="$BACKEND_DIR/target/cursospring-0.0.1-SNAPSHOT.jar"
+# JAR файл создаётся в корне проекта (где находится pom.xml)
+JAR_FILE="$PROJECT_DIR/target/cursospring-0.0.1-SNAPSHOT.jar"
 
 echo "============================================"
 echo "Развертывание бэкенда cursospring"
@@ -40,8 +41,18 @@ echo "1. Сборка проекта (Maven)..."
 cd "$PROJECT_DIR"
 mvn clean package -DskipTests
 
-if [ ! -f "$JAR_FILE" ]; then
+# Поиск JAR файла (может быть в target/ или backend/target/)
+if [ -f "$PROJECT_DIR/target/cursospring-0.0.1-SNAPSHOT.jar" ]; then
+    JAR_FILE="$PROJECT_DIR/target/cursospring-0.0.1-SNAPSHOT.jar"
+elif [ -f "$BACKEND_DIR/target/cursospring-0.0.1-SNAPSHOT.jar" ]; then
+    JAR_FILE="$BACKEND_DIR/target/cursospring-0.0.1-SNAPSHOT.jar"
+else
     echo "❌ Ошибка: JAR файл не найден после сборки!"
+    echo "Искал в:"
+    echo "  - $PROJECT_DIR/target/cursospring-0.0.1-SNAPSHOT.jar"
+    echo "  - $BACKEND_DIR/target/cursospring-0.0.1-SNAPSHOT.jar"
+    echo ""
+    echo "Проверьте вывод сборки выше на наличие ошибок."
     exit 1
 fi
 

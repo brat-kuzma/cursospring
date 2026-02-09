@@ -5,9 +5,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: '0.0.0.0', // Слушать на всех интерфейсах для доступа с удалённых машин
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        // Для удалённого сервера: замените localhost на IP сервера или используйте переменную окружения
+        target: process.env.VITE_API_URL || 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
         configure: (proxy) => {
