@@ -1,10 +1,10 @@
-# Release v1.0.0
+# Release v1.1.0
 
 ## Дата релиза
 2026-02-09
 
 ## Описание
-Релизная версия приложения cursospring с полным функционалом управления задачами и файловым менеджером.
+Релиз с деплоем через Nginx: один скрипт для Ubuntu 22 (PostgreSQL + бэкенд + фронт), обновлённая документация, исправление 413 при загрузке файлов.
 
 ## Функционал
 
@@ -31,23 +31,22 @@
 
 ## Развертывание
 
-См. документацию:
-- `scripts/DEPLOY.md` - подробная инструкция
-- `scripts/STEP-BY-STEP.md` - пошаговая инструкция
-- `scripts/REMOTE-SERVER.md` - настройка для удалённого сервера
+- **Продакшен:** Nginx раздаёт фронт и проксирует `/api` на бэкенд; лимит загрузки файлов `client_max_body_size 1024M`.
+- `scripts/DEPLOY.md` — общая инструкция (в т.ч. конфиг Nginx)
+- `scripts/DEPLOY-UBUNTU22.md` — один скрипт для Ubuntu 22 (PostgreSQL, Java, Maven, Node, Nginx, systemd)
+- `scripts/STEP-BY-STEP.md` — пошаговая инструкция
+- `scripts/REMOTE-SERVER.md` — настройка для удалённого сервера
 
 ## Скрипты
 
-- `scripts/deploy-backend.sh` - сборка и подготовка бэкенда
-- `scripts/start-backend.sh` - запуск бэкенда в фоне
-- `scripts/stop-backend.sh` - остановка бэкенда
-- `scripts/start-frontend-background.sh` - запуск фронтенда в фоне
-- `scripts/stop-frontend.sh` - остановка фронтенда
-- `scripts/check-database.sh` - проверка подключения к БД
-- `scripts/fix-database.sh` - исправление проблем с БД
+- `scripts/deploy-ubuntu22-minimal.sh` — полный деплой на Ubuntu 22 (включая Nginx и лимит 1 ГБ)
+- `scripts/fix-nginx-413.sh` — исправление 413 при загрузке файлов в Nginx
+- `scripts/deploy-backend.sh`, `start-backend.sh`, `stop-backend.sh` — бэкенд
+- `scripts/start-frontend-background.sh`, `stop-frontend.sh` — фронт в фоне (dev)
+- `scripts/check-database.sh`, `fix-database.sh` — БД
 
 ## Версия
-v1.0.0
+v1.1.0
 
 ## Авторы
 cursospring team
