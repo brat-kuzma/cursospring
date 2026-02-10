@@ -1,6 +1,6 @@
 ### ========== Переменные (можно менять) ==========
 # Адрес бэкенда
-@baseUrl = http://localhost:8080
+@baseUrl = http://91.194.3.57:8080
 # Тип тела запроса для JSON
 @contentType = application/json
 # Заглушка для Bearer-токена, если позже будет JWT

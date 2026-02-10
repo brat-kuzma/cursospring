@@ -1,5 +1,6 @@
 package com.ExampleCursor.cursospring.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,12 @@ import org.springframework.security.web.context.SecurityContextRepository;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${app.security.user.name:user}")
+    private String securityUserName;
+
+    @Value("${app.security.user.password:password}")
+    private String securityUserPassword;
 
     /**
      * Главный бин: цепочка фильтров безопасности для каждого HTTP-запроса.
@@ -86,14 +93,16 @@ public class SecurityConfig {
     }
 
     /**
-     * Источник пользователей: кто вообще может войти. Сейчас — один пользователь в памяти:
-     * user / password (пароль хранится в виде BCrypt-хеша). В проде обычно подменяют на репозиторий из БД.
+     * Источник пользователей: кто вообще может войти. Сейчас — один пользователь в памяти;
+     * логин и пароль берутся из app.security.user.name и app.security.user.password
+     * (или переменных окружения APP_SECURITY_USER_NAME, APP_SECURITY_USER_PASSWORD).
+     * Пароль хранится в виде BCrypt-хеша. В проде обычно подменяют на репозиторий из БД.
      */
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder encoder) {
         var user = User.builder()
-                .username("user")
-                .password(encoder.encode("password"))
+                .username(securityUserName)
+                .password(encoder.encode(securityUserPassword))
                 .roles("USER")
                 .build();
         return new InMemoryUserDetailsManager(user);
