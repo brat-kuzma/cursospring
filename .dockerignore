@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# Build outputs (rebuilt in container)
+target/
+frontend/dist
+frontend/node_modules
+
+# IDE and local config
+.idea
+.vscode
+*.iml
+.env
+.env.*
+!.env.example
+**/application-local.properties
+
+# Data and logs (use volumes in Docker)
+data/
+backend/data/
+logs/
+
+# Docs and scripts (not needed in image)
+*.md
+!backend/sql/*.sql
+scripts/
+http/
+backend/http/
+
+# Misc
+.DS_Store
+*.log

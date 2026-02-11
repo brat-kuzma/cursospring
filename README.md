@@ -34,6 +34,56 @@
 
 ---
 
+## Схема взаимодействия
+
+### Продакшен (nginx)
+
+Пользователь обращается к одному домену/порту; nginx раздаёт статику фронта и проксирует запросы к API на бэкенд.
+
+```mermaid
+flowchart LR
+    subgraph Client["Клиент"]
+        Browser[Браузер]
+    end
+
+    subgraph Server["Сервер"]
+        Nginx[nginx :80]
+        Static["Статика\nfrontend/dist"]
+        Backend[Spring Boot :8080]
+    end
+
+    subgraph BackendInternals["Бэкенд"]
+        API["REST API\n/api/tasks, /api/files\n/api/auth"]
+        DB[(PostgreSQL)]
+        Disk[Диск\nuploads]
+    end
+
+    Browser -->|"GET /, /tasks, /files"| Nginx
+    Browser -->|"GET/POST/PUT/DELETE /api/*"| Nginx
+    Nginx -->|"статика"| Static
+    Nginx -->|"proxy_pass /api"| Backend
+    Backend --> API
+    API --> DB
+    API --> Disk
+```
+
+- **Запросы к приложению** (`/`, `/tasks`, `/files`) — nginx отдаёт файлы из `frontend/dist` (SPA: `index.html` и ассеты).
+- **Запросы к API** (`/api/*`) — nginx проксирует на `http://localhost:8080`; бэкенд обрабатывает авторизацию, задачи, файлы и БД.
+
+### Разработка (без nginx)
+
+Фронт на Vite (порт 5173), запросы к `/api` проксируются в `vite.config.ts` на бэкенд (порт 8080).
+
+```mermaid
+flowchart LR
+    Browser[Браузер] -->|"всё с localhost:5173"| Vite[Vite dev :5173]
+    Vite -->|"статика, SPA"| React[React]
+    Vite -->|"proxy /api → :8080"| Backend[Spring Boot :8080]
+    Backend --> DB[(PostgreSQL)]
+```
+
+---
+
 ## Модуль задач
 
 Реализован в бэкенде и на фронте.
@@ -106,7 +156,20 @@
 
 ---
 
-## Запуск
+## Запуск через Docker
+
+Развёртывание «с нуля» в три контейнера (PostgreSQL, backend, frontend+nginx): один порт, без установки Java/Node на хост.
+
+```bash
+cp env.docker.example .env   # опционально: пароль БД и логин приложения
+docker compose up -d --build
+```
+
+Приложение: **http://localhost:8080** (логин по умолчанию: user / password). Подробно: [DOCKER.md](DOCKER.md).
+
+---
+
+## Запуск (без Docker)
 
 ### 1. Пароль БД (обязательно)
 
@@ -156,6 +219,14 @@ export APP_UPLOAD_DIR=/путь/к/каталогу
 
 ```
 cursospring/
+├── backend/
+│   ├── Dockerfile        # Сборка JAR и образ Spring Boot
+│   └── src/...
+├── frontend/
+│   ├── Dockerfile        # Сборка статики + nginx
+│   └── nginx.conf        # Прокси /api на бэкенд
+├── docker-compose.yml   # postgres, backend, frontend (порт 8080)
+├── env.docker.example   # Переменные для Docker (.env)
 ├── backend/src/main/java/.../
 │   ├── config/          # SecurityConfig, WebConfig, FileStorageProperties
 │   ├── controller/      # Auth, Task, File, GlobalExceptionHandler
@@ -169,6 +240,7 @@ cursospring/
 ├── backend/http/requests.http  # примеры запросов (tasks, auth, files)
 ├── frontend/                    # React + Vite, страницы Tasks и FileManager
 ├── pom.xml                      # Maven, sourceDirectory → backend
+├── DOCKER.md                    # Подробное развёртывание в Docker
 └── README.md
 ```
 
